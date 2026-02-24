@@ -96,8 +96,17 @@ def create_dataset(opt, mode):
 
     ds = getattr(datasets, opt.dataset)(opt.dataroot, train=mode, download=True)
     smode = 'train' if mode else 'test'
-    ds = tnt.dataset.TensorDataset([getattr(ds, smode + '_data'),
-                                    getattr(ds, smode + '_labels')])
+
+# torchvision new API: ds.data, ds.targets
+# fallback to old API if needed
+if hasattr(ds, "data") and hasattr(ds, "targets"):
+    data = ds.data
+    labels = ds.targets
+else:
+    data = getattr(ds, smode + '_data')
+    labels = getattr(ds, smode + '_labels')
+
+ds = tnt.dataset.TensorDataset([data, labels])
     return ds.transform({0: train_transform if mode else convert})
 
 
